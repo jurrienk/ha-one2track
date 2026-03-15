@@ -11,7 +11,7 @@ A custom Home Assistant integration for One2Track GPS watches (children/elderly 
 - `custom_components/one2track/services.py` — All HA service handlers and registration
 - `custom_components/one2track/entity.py` — Base entity class (shared device_info, data access)
 - `custom_components/one2track/const.py` — Command codes, URLs, constants
-- `custom_components/one2track/sensor.py` — 12 sensor entities
+- `custom_components/one2track/sensor.py` — 12 standard + 2 conditional sensor entities (phonebook, whitelist)
 - `custom_components/one2track/device_tracker.py` — GPS tracker entity with attributes
 - `custom_components/one2track/switch.py` — Step counter toggle (model-aware: 0079 or 0082)
 - `custom_components/one2track/select.py` — GPS interval + profile mode selectors (dynamically discovered)
@@ -45,6 +45,17 @@ These have caused regressions before — do not change without understanding:
    - The integration discovers capabilities at init via `GET /devices/{uuid}/functions?list_only=true`
    - Option values for selects are discovered via `GET /devices/{uuid}/functions?function={code}&list_only=true&modal=true`
    - **Never hardcode command codes or option values per model** — always use discovered capabilities
+
+## Privacy
+
+Never include private or personally identifiable information in documentation, code comments, or commit messages. This includes:
+
+- Real device names, watch names, or personal names
+- Real phone numbers, SIM numbers, or serial numbers
+- Real entity IDs, device IDs, UUIDs, or account IDs from test devices
+- Real addresses, coordinates, or location data
+
+Always use generic placeholders (e.g. `<device_id>`, `0031612345678`, `device_tracker.my_watch`, `12345`) in examples and documentation.
 
 ## Version Bumping
 

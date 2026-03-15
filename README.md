@@ -1,14 +1,14 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/jurrienk/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.2-blue)](https://github.com/jurrienk/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
 ## Features
 
 - **Device tracker** with GPS coordinates, zone detection, and address
-- **12 sensors** — battery, SIM balance, signal strength, satellite count, speed, altitude, heading, GPS accuracy, steps, status, and timestamps
-- **Phonebook & whitelist sensors** — contact count with full list as attributes
+- **14 sensors** — battery, SIM balance, signal strength, satellite count, speed, altitude, heading, GPS accuracy, steps, status, timestamps, phonebook contact count, and whitelist number count (last two are model-dependent)
+- **Phonebook & whitelist sensors** — show contact/number count with full list as attributes (only created if the device supports these features)
 - **Binary sensor** — fall detection
 - **Buttons** — refresh location (activate GPS mode), find device (ring the watch)
 - **Switch** — step counter toggle
@@ -64,6 +64,15 @@ Call the `one2track.get_raw_device_data` service to get raw data from all source
 See [TESTING.md](TESTING.md) for the full architecture reference, entity specifications, service examples, and test procedures.
 
 ## Changelog
+
+### v1.0.2 (2026-03-15)
+
+- **Docs:** Aligned version numbers across all documentation (README, TESTING.md, manifest)
+- **Docs:** Added privacy guidelines to CLAUDE.md to prevent leaking private device/entity information
+
+### v1.0.1 (2026-03-15)
+
+- **Docs:** Removed personal name references from documentation
 
 ### v1.0.0 (2026-03-15)
 
