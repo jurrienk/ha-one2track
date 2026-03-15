@@ -112,8 +112,15 @@ Each physical device (watch) creates the following HA entities. **Entities for m
 - `signal_strength`, `satellite_count`
 - `last_communication`, `last_location_update`
 - `tariff_type`, `balance_eur` (from simcard data — the API field `balance_cents` is divided by 100 to get euros)
+- `settings_synced` (boolean — whether settings have been read from the portal)
+- `phonebook` (list of `{name, number}` dicts — present when synced)
+- `whitelist` (list of phone number strings — present when synced)
+- `alarms` (list of alarm strings — always present, `[]` when empty)
+- `quiet_times` (list of `{start, end}` dicts — always present, `[]` when empty)
 
-### Sensors
+### Sensors (12 standard + 2 conditional)
+
+#### Standard Sensors (always created, one per device)
 
 | Key | Entity suffix | Source field | Unit | Notes |
 |-----|--------------|-------------|------|-------|
@@ -125,10 +132,21 @@ Each physical device (watch) creates the following HA entities. **Entities for m
 | `satellite_count` | `_satellite_count` | `last_location.satellite_count` | count | 0 = no GPS fix |
 | `speed` | `_speed` | `last_location.speed` | km/h | |
 | `altitude` | `_altitude` | `last_location.altitude` | m | |
-| `steps_today` | `_steps_today` | `last_location.step_count_day` | steps | Resets daily |
+| `steps_today` | `_steps_today` | `last_location.step_count_day` | steps | Resets daily. Fallback: `meta_data.steps` |
 | `accuracy` | `_accuracy` | `last_location.meta_data.accuracy_meters` | m | GPS accuracy radius |
-| `heading` | `_heading` | `last_location.meta_data.course` | deg | Returns `unknown` when satellite_count is 0 |
-| `status` | `_status` | `device.status` | string | Plain text (e.g. "online", "offline") |
+| `heading` | `_heading` | `last_location.meta_data.course` | ° | Returns `unknown` when satellite_count is 0 or non-numeric |
+| `status` | `_status` | `device.status` | enum | Device class ENUM with options: `gps`, `wifi`, `offline`. Value is lowercased from API. |
+
+#### Conditional Sensors (only created if device supports the feature)
+
+| Key | Entity suffix | Created if | Value | Attributes |
+|-----|--------------|-----------|-------|------------|
+| `phonebook` | `_phonebook` | Device supports CMD_PHONEBOOK (1315) | Contact count (integer) | `contacts`: list of `{name, number}` dicts |
+| `whitelist` | `_whitelist` | Device supports CMD_WHITELIST_1 (0080) | Number count (integer) | `numbers`: list of phone number strings |
+
+**Model differences for conditional sensors:**
+- **Connect MOVE:** Both phonebook and whitelist sensors are created
+- **Connect UP:** Only phonebook sensor is created (whitelist not supported)
 
 ### Binary Sensors
 
@@ -234,13 +252,42 @@ data:
       number: "0031612345678"
 ```
 
+#### `one2track.add_phonebook_contact`
+Syncs from portal before modifying. Replaces existing contact if name matches, otherwise appends.
+```yaml
+data:
+  name: "Contact1"
+  number: "0031612345678"
+```
+
+#### `one2track.remove_phonebook_contact`
+Syncs from portal before modifying. Errors if name not found.
+```yaml
+data:
+  name: "Contact1"
+```
+
 #### `one2track.set_whitelist` (Connect MOVE only)
-**Checks capability before executing.**
+**Checks capability before executing.** Maximum 10 numbers. Internally split across two command slots (0080 for 1-5, 0081 for 6-10).
 ```yaml
 data:
   phone_numbers:
     - "0031612345678"
     - "0031687654321"
+```
+
+#### `one2track.add_whitelist_number` (Connect MOVE only)
+**Checks capability before executing.** Syncs from portal before modifying. Errors if number already exists or list is full (max 10).
+```yaml
+data:
+  phone_number: "0031612345678"
+```
+
+#### `one2track.remove_whitelist_number` (Connect MOVE only)
+**Checks capability before executing.** Syncs from portal before modifying. Errors if number not found.
+```yaml
+data:
+  phone_number: "0031612345678"
 ```
 
 #### `one2track.set_quiet_times`
@@ -305,9 +352,17 @@ data: {}
         {"value": "300", "label": "Every 5 minutes - Medium battery", "checked": true}
       ]
     }
+  },
+  "local_settings": {
+    "phonebook": [{"name": "Contact1", "number": "0031612345678"}],
+    "whitelist": ["0031612345678"],
+    "alarms": ["07:00-1-2"],
+    "quiet_times": [{"start": "22:00", "end": "07:00"}]
   }
 }
 ```
+
+**Notes:** If a data source fails, its key is replaced with an error key (e.g., `json_api_error` instead of `json_api`). The `local_settings` section shows the coordinator's current state for persistent settings.
 
 ---
 
@@ -349,7 +404,7 @@ All device commands use the Rails PATCH convention:
 
 2. **Capability discovery happens once at init.** If a watch is offline at HA startup, capabilities may not be discovered and model-specific entities won't be created until HA restarts.
 
-3. **Status sensor depends on JSON discovery data.** May not update as frequently as HTML-scraped sensors.
+3. **Status sensor is an ENUM with values `gps`, `wifi`, `offline`.** The raw API value is lowercased. May not update as frequently as HTML-scraped sensors.
 
 4. **HTML scraping is fragile.** Parses `var device = {...}` and `var last_location = {...}` from inline JavaScript. Site changes could break silently.
 
@@ -373,7 +428,7 @@ All device commands use the Rails PATCH convention:
 1. Check the integration loaded: devices appear under Settings → Devices
 2. Verify device tracker has latitude/longitude
 3. Check `sensor.*_battery` has a percentage value
-4. Check `sensor.*_status` shows a string value (not 404)
+4. Check `sensor.*_status` shows one of: `gps`, `wifi`, `offline`
 
 ### Capability Discovery Test
 1. Call `one2track.get_raw_device_data` with return_response
@@ -381,13 +436,70 @@ All device commands use the Rails PATCH convention:
 3. Check `discovered_capabilities.options` — GPS interval and profile mode should have option lists
 4. Verify the GPS interval select and step counter switch exist (they're only created for supported devices)
 5. Check the `cmd_code` attribute on select/switch entities — should match the discovered code for that model
+6. Check `local_settings` — should show current phonebook, whitelist, alarms, and quiet_times state
 
-### Multi-Model Test (if you have multiple watch models)
-1. Both devices should show up under Settings → Devices
-2. Each device's select entities should have model-specific options (e.g., MOVE has 10s GPS option, UP does not)
-3. The `cmd_code` attribute on GPS interval select should differ per model (0077 vs 0078)
-4. Connect MOVE should have step counter with cmd_code 0079, Connect UP should have 0082
-5. Services like `intercom`, `set_whitelist`, `change_password` should error on Connect UP with "does not support" message
+### Multi-Model Entity Test
+
+The integration creates different entities depending on device capabilities. Test that the correct entities exist for each model.
+
+#### Expected entities per model
+
+| Entity | Connect MOVE | Connect UP |
+|--------|-------------|-----------|
+| `device_tracker.<name>` | Yes | Yes |
+| `sensor.<name>_battery` | Yes | Yes |
+| `sensor.<name>_sim_balance` | Yes | Yes |
+| `sensor.<name>_last_location_update` | Yes | Yes |
+| `sensor.<name>_last_communication` | Yes | Yes |
+| `sensor.<name>_signal_strength` | Yes | Yes |
+| `sensor.<name>_satellite_count` | Yes | Yes |
+| `sensor.<name>_speed` | Yes | Yes |
+| `sensor.<name>_altitude` | Yes | Yes |
+| `sensor.<name>_steps_today` | Yes | Yes |
+| `sensor.<name>_accuracy` | Yes | Yes |
+| `sensor.<name>_heading` | Yes | Yes |
+| `sensor.<name>_status` | Yes | Yes |
+| `sensor.<name>_phonebook` | Yes (if 1315 discovered) | Yes (if 1315 discovered) |
+| `sensor.<name>_whitelist` | Yes (if 0080 discovered) | **No** (not supported) |
+| `binary_sensor.<name>_fall_detected` | Yes | Yes |
+| `button.<name>_refresh_location` | Yes | Yes |
+| `button.<name>_find_device` | Yes | Yes |
+| `switch.<name>_step_counter` | Yes (cmd_code 0079) | Yes (cmd_code 0082) |
+| `select.<name>_gps_tracking_interval` | Yes (cmd_code 0078) | Yes (cmd_code 0077) |
+| `select.<name>_profile_mode` | Yes (if 1116 discovered) | Yes (if 1116 discovered) |
+
+#### Test steps
+1. List all entities for each device under Settings → Devices
+2. Verify Connect MOVE has whitelist sensor, Connect UP does not
+3. Check `cmd_code` attribute on step counter switch: MOVE=`0079`, UP=`0082`
+4. Check `cmd_code` attribute on GPS interval select: MOVE=`0078`, UP=`0077`
+5. Verify GPS interval options differ: MOVE should offer 10s option, UP should not
+6. Check phonebook sensor value = number of contacts, with `contacts` attribute showing the list
+
+### Model-Specific Service Test
+
+Services that require specific capabilities should error gracefully on unsupported devices.
+
+| Service | Connect MOVE | Connect UP (expected error) |
+|---------|-------------|---------------------------|
+| `intercom` | Should work | `ServiceValidationError`: "does not support intercom — only available on Connect MOVE watches" |
+| `set_whitelist` | Should work | `ServiceValidationError`: "does not support whitelist — only available on Connect MOVE watches" |
+| `add_whitelist_number` | Should work | `ServiceValidationError`: "does not support whitelist" |
+| `remove_whitelist_number` | Should work | `ServiceValidationError`: "does not support whitelist" |
+| `change_password` | Should work | `ServiceValidationError`: "does not support password change — only available on Connect MOVE watches" |
+
+**Test steps:**
+1. Call `one2track.intercom` targeting a Connect UP device — verify the error message names the device and mentions Connect MOVE
+2. Call `one2track.set_whitelist` targeting a Connect UP device — verify similar error
+3. Call `one2track.change_password` targeting a Connect UP device — verify similar error
+4. Repeat all three on a Connect MOVE device — verify they succeed (use safe test values)
+
+### Settings Persistence Test
+1. Set phonebook via `one2track.set_phonebook` with test contacts
+2. Verify `sensor.*_phonebook` shows correct count and `contacts` attribute
+3. Restart Home Assistant
+4. Verify phonebook contacts survive the restart (loaded from persistent storage)
+5. Repeat for alarms and quiet_times (check device tracker attributes)
 
 ### Service Targeting Test
 Services must work with all three targeting methods:
@@ -406,6 +518,7 @@ target:
 3. Compare `html_scraped.last_location` fields with sensor values
 4. Check `coordinator_data` matches what entities display
 5. Verify `balance_eur` attribute matches `sim_balance` sensor value
+6. Compare `local_settings.phonebook` with `sensor.*_phonebook` `contacts` attribute
 
 ### Command Test (safe commands only)
 - **find_device:** Watch should ring
@@ -416,3 +529,4 @@ target:
 1. List all entities for each device
 2. Every entity should have a state (not 404/unavailable unless watch is offline)
 3. Model-specific entities should only exist for devices that support them
+4. Conditional sensors (phonebook, whitelist) should only appear for devices with the corresponding capability

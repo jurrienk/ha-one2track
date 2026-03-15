@@ -11,7 +11,7 @@ A custom Home Assistant integration for One2Track GPS watches (children/elderly 
 - `custom_components/one2track/services.py` — All HA service handlers and registration
 - `custom_components/one2track/entity.py` — Base entity class (shared device_info, data access)
 - `custom_components/one2track/const.py` — Command codes, URLs, constants
-- `custom_components/one2track/sensor.py` — 12 sensor entities
+- `custom_components/one2track/sensor.py` — 12 standard + 2 conditional sensor entities (phonebook, whitelist)
 - `custom_components/one2track/device_tracker.py` — GPS tracker entity with attributes
 - `custom_components/one2track/switch.py` — Step counter toggle (model-aware: 0079 or 0082)
 - `custom_components/one2track/select.py` — GPS interval + profile mode selectors (dynamically discovered)
