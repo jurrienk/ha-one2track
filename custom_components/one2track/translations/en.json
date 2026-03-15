@@ -1,0 +1,95 @@
+{
+    "title": "One2Track GPS trackers",
+    "config": {
+        "step": {
+            "user": {
+                "title": "One2Track Login",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                },
+                "description": "Enter your One2Track account credentials."
+            }
+        },
+        "error": {
+            "auth": "Invalid username or password",
+            "connection": "Unable to connect to One2Track",
+            "unknown": "Unexpected error"
+        },
+        "abort": {
+            "already_configured": "Account is already configured"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "battery": {
+                "name": "Battery"
+            },
+            "sim_balance": {
+                "name": "SIM balance"
+            },
+            "last_location_update": {
+                "name": "Last location update"
+            },
+            "last_communication": {
+                "name": "Last communication"
+            },
+            "signal_strength": {
+                "name": "Signal strength"
+            },
+            "satellite_count": {
+                "name": "Satellite count"
+            },
+            "speed": {
+                "name": "Speed"
+            },
+            "altitude": {
+                "name": "Altitude"
+            },
+            "steps_today": {
+                "name": "Steps today"
+            },
+            "accuracy": {
+                "name": "GPS accuracy"
+            },
+            "heading": {
+                "name": "Heading"
+            },
+            "status": {
+                "name": "Status"
+            },
+            "phonebook": {
+                "name": "Phonebook"
+            },
+            "whitelist": {
+                "name": "Whitelist"
+            }
+        },
+        "binary_sensor": {
+            "tumble": {
+                "name": "Fall detected"
+            }
+        },
+        "button": {
+            "refresh_location": {
+                "name": "Refresh location"
+            },
+            "find_device": {
+                "name": "Find device"
+            }
+        },
+        "switch": {
+            "step_counter": {
+                "name": "Step counter"
+            }
+        },
+        "select": {
+            "gps_interval": {
+                "name": "GPS tracking interval"
+            },
+            "profile_mode": {
+                "name": "Profile mode"
+            }
+        }
+    }
+}

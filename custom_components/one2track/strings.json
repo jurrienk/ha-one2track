@@ -1,0 +1,92 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        }
+      }
+    },
+    "error": {
+      "auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "connection": "[%key:common::config_flow::error::cannot_connect%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "sim_balance": {
+        "name": "SIM balance"
+      },
+      "last_location_update": {
+        "name": "Last location update"
+      },
+      "last_communication": {
+        "name": "Last communication"
+      },
+      "signal_strength": {
+        "name": "Signal strength"
+      },
+      "satellite_count": {
+        "name": "Satellite count"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "altitude": {
+        "name": "Altitude"
+      },
+      "steps_today": {
+        "name": "Steps today"
+      },
+      "accuracy": {
+        "name": "GPS accuracy"
+      },
+      "heading": {
+        "name": "Heading"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "phonebook": {
+        "name": "Phonebook"
+      },
+      "whitelist": {
+        "name": "Whitelist"
+      }
+    },
+    "binary_sensor": {
+      "tumble": {
+        "name": "Fall detected"
+      }
+    },
+    "button": {
+      "refresh_location": {
+        "name": "Refresh location"
+      },
+      "find_device": {
+        "name": "Find device"
+      }
+    },
+    "switch": {
+      "step_counter": {
+        "name": "Step counter"
+      }
+    },
+    "select": {
+      "gps_interval": {
+        "name": "GPS tracking interval"
+      },
+      "profile_mode": {
+        "name": "Profile mode"
+      }
+    }
+  }
+}

@@ -1,0 +1,350 @@
+# ── Action services ───────────────────────────────────────────────
+
+send_message:
+  name: Send message
+  description: Send a text message to a One2Track device
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    message:
+      name: Message
+      description: The text message to send to the device
+      required: true
+      example: "Time to come home!"
+      selector:
+        text:
+
+force_update:
+  name: Refresh location
+  description: Activate high-frequency GPS mode on the device for ~2 minutes
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+
+find_device:
+  name: Find device (ring)
+  description: Make the watch play its ringtone to help locate it physically
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+
+intercom:
+  name: Intercom (call)
+  description: Make the watch immediately call the specified phone number
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    phone_number:
+      name: Phone number
+      description: The phone number the watch will call (international format)
+      required: true
+      example: "0031612345678"
+      selector:
+        text:
+
+# ── Setting services ─────────────────────────────────────────────
+
+send_device_command:
+  name: Send device command
+  description: Send an arbitrary command to a One2Track device
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    cmd_code:
+      name: Command code
+      description: "The function code to send (e.g. 0039 for positioning mode)"
+      required: true
+      example: "0039"
+      selector:
+        text:
+    cmd_values:
+      name: Command values
+      description: "Optional list of values for the command (sent as function[cmd_value][] entries)"
+      required: false
+      example: "['0031612345678']"
+      selector:
+        object:
+
+set_sos_number:
+  name: Set SOS number
+  description: Set the emergency phone number called when the SOS button is pressed
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    phone_number:
+      name: Phone number
+      description: Phone number in international format
+      required: true
+      example: "0031612345678"
+      selector:
+        text:
+
+set_alarms:
+  name: Set alarms
+  description: >
+    Set alarms on the watch. Send an empty list to clear all alarms.
+    Format per alarm: HH:MM-STATUS-MODE[-DDDDDDD]
+      - STATUS: 1=enabled, 0=disabled
+      - MODE: 1=once, 2=daily, 3=weekdays
+      - DDDDDDD (optional, mode 3 only): 7 digits for Mon-Sun (1=on, 0=off)
+    Example YAML:
+      alarms:
+        - "07:00-1-2"
+        - "08:30-1-3-1111100"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    alarms:
+      name: Alarms
+      description: >
+        List of alarm strings. "07:00-1-2" = daily alarm at 07:00.
+        "08:30-1-3-1111100" = weekday alarm at 08:30 (Mon-Fri).
+        Send an empty list to clear all alarms.
+      required: false
+      example: "['07:00-1-2', '08:30-1-3-1111100']"
+      selector:
+        object:
+
+set_phonebook:
+  name: Set phonebook
+  description: >
+    Replace all contacts stored on the watch. Each contact needs a name and
+    phone number. Send an empty list to clear the phonebook.
+    Example YAML:
+      contacts:
+        - name: Papa
+          number: "0031612345678"
+        - name: Mama
+          number: "0031687654321"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    contacts:
+      name: Contacts
+      description: >
+        List of contacts. Each entry must have a "name" (display name on watch)
+        and a "number" (phone number in international format, e.g. 0031612345678).
+        Send an empty list to clear all contacts.
+      required: false
+      example: "[{'name': 'Papa', 'number': '0031612345678'}, {'name': 'Mama', 'number': '0031687654321'}]"
+      selector:
+        object:
+
+add_phonebook_contact:
+  name: Add phonebook contact
+  description: >
+    Add a single contact to the watch phonebook. If a contact with the same
+    name already exists, its number is updated. Requires that the phonebook
+    state is known (synced from portal on startup, or previously set via
+    set_phonebook).
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    name:
+      name: Name
+      description: Display name for the contact on the watch
+      required: true
+      example: "Papa"
+      selector:
+        text:
+    number:
+      name: Phone number
+      description: Phone number in international format (e.g. 0031612345678)
+      required: true
+      example: "0031612345678"
+      selector:
+        text:
+
+remove_phonebook_contact:
+  name: Remove phonebook contact
+  description: >
+    Remove a single contact from the watch phonebook by name. Requires that
+    the phonebook state is known (synced from portal on startup, or previously
+    set via set_phonebook).
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    name:
+      name: Name
+      description: Name of the contact to remove (must match exactly)
+      required: true
+      example: "Papa"
+      selector:
+        text:
+
+set_whitelist:
+  name: Set whitelist
+  description: >
+    Replace all phone numbers allowed to call the watch (up to 10 numbers).
+    Connect MOVE only. Send an empty list to clear.
+    Example YAML:
+      phone_numbers:
+        - "0031612345678"
+        - "0031687654321"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    phone_numbers:
+      name: Phone numbers
+      description: >
+        List of up to 10 phone numbers in international format.
+        Only these numbers will be allowed to call the watch.
+      required: true
+      example: "['0031612345678', '0031687654321']"
+      selector:
+        object:
+
+add_whitelist_number:
+  name: Add whitelist number
+  description: >
+    Add a single phone number to the whitelist. Connect MOVE only.
+    Fails if whitelist is full (max 10) or number already exists.
+    Requires that the whitelist state is known (synced from portal on startup,
+    or previously set via set_whitelist).
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    phone_number:
+      name: Phone number
+      description: Phone number to add (international format)
+      required: true
+      example: "0031612345678"
+      selector:
+        text:
+
+remove_whitelist_number:
+  name: Remove whitelist number
+  description: >
+    Remove a single phone number from the whitelist. Connect MOVE only.
+    Requires that the whitelist state is known (synced from portal on startup,
+    or previously set via set_whitelist).
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    phone_number:
+      name: Phone number
+      description: Phone number to remove (must match exactly)
+      required: true
+      example: "0031612345678"
+      selector:
+        text:
+
+set_quiet_times:
+  name: Set quiet times
+  description: >
+    Set time windows during which the watch is silent (max 3 windows).
+    Send an empty list to clear all quiet times.
+    Example YAML:
+      windows:
+        - start: "22:00"
+          end: "07:00"
+        - start: "13:00"
+          end: "14:00"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    windows:
+      name: Quiet windows
+      description: >
+        List of time windows (max 3). Each window needs a "start" and "end"
+        time in HH:MM format. Send an empty list to clear.
+      required: false
+      example: "[{'start': '22:00', 'end': '07:00'}]"
+      selector:
+        object:
+
+set_language_timezone:
+  name: Set language & timezone
+  description: "Set the watch language and timezone"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    language:
+      name: Language
+      description: "Language code: 1=English, 5=German, 16=Dutch"
+      required: true
+      example: "16"
+      selector:
+        select:
+          options:
+            - label: English
+              value: "1"
+            - label: German
+              value: "5"
+            - label: Dutch
+              value: "16"
+    utc_offset:
+      name: UTC offset
+      description: "UTC offset as float string (e.g. 1.0 for CET, 2.0 for CEST)"
+      required: true
+      example: "1.0"
+      selector:
+        text:
+
+change_password:
+  name: Change device password
+  description: Change the 6-digit PIN on the watch
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+  fields:
+    password:
+      name: Password
+      description: New 6-digit PIN
+      required: true
+      example: "123456"
+      selector:
+        text:
+
+factory_reset:
+  name: Factory reset
+  description: "Reset the device to factory defaults. WARNING: This cannot be undone!"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+
+remote_shutdown:
+  name: Remote shutdown
+  description: "Power off the watch remotely. WARNING: Cannot be turned back on via the app!"
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
+
+get_raw_device_data:
+  name: Get raw device data
+  description: "Fetch raw live data from One2Track for diagnostics and testing. Returns JSON API data, HTML-scraped data, and current coordinator state."
+  target:
+    entity:
+      integration: one2track
+      domain: device_tracker
