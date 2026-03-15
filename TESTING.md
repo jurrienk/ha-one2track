@@ -1,6 +1,6 @@
 # One2Track Integration — Testing & Architecture Reference
 
-> **Version:** 5.0.0
+> **Version:** 1.0.2
 > **Integration domain:** `one2track`
 > **Source:** `custom_components/one2track/`
 

@@ -46,6 +46,17 @@ These have caused regressions before — do not change without understanding:
    - Option values for selects are discovered via `GET /devices/{uuid}/functions?function={code}&list_only=true&modal=true`
    - **Never hardcode command codes or option values per model** — always use discovered capabilities
 
+## Privacy
+
+Never include private or personally identifiable information in documentation, code comments, or commit messages. This includes:
+
+- Real device names, watch names, or personal names
+- Real phone numbers, SIM numbers, or serial numbers
+- Real entity IDs, device IDs, UUIDs, or account IDs from test devices
+- Real addresses, coordinates, or location data
+
+Always use generic placeholders (e.g. `<device_id>`, `0031612345678`, `device_tracker.my_watch`, `12345`) in examples and documentation.
+
 ## Version Bumping
 
 Always bump the version in `manifest.json` when making changes.
