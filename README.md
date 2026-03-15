@@ -72,7 +72,7 @@ See [TESTING.md](TESTING.md) for the full architecture reference, entity specifi
 - **Fix:** All service validation errors now use `ServiceValidationError` for proper HA UI error display instead of raw 500 messages
 - **Fix:** `intercom` and `change_password` capability errors now show the device name and a clear message about Connect MOVE requirement
 - **Fix:** `alarms` and `quiet_times` attributes are always present on the device tracker (empty list `[]` when cleared, instead of disappearing)
-- **Fix:** Test plan device model labels corrected (Evi = Connect UP, Jelte = Connect MOVE)
+- **Fix:** Test plan device model labels corrected to match device models (Connect UP, Connect MOVE)
 - **Improvement:** Heading sensor satellite_count comparison is now type-safe
 - **Improvement:** Whitelist full error message now suggests using `set_whitelist` as an alternative
 
