@@ -1,0 +1,15 @@
+{
+  "domain": "one2track",
+  "name": "One2Track",
+  "codeowners": ["@jurrienk"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/jurrienk/ha-one2track",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jurrienk/ha-one2track/issues",
+  "requirements": [],
+  "ssdp": [],
+  "version": "1.0.13",
+  "zeroconf": []
+}

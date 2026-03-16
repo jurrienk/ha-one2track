@@ -1,0 +1,6 @@
+debug
+.idea
+__pycache__
+
+# Private session notes (never commit)
+.private/
