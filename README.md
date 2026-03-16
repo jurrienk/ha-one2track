@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.13-blue)](https://github.com/jurrienk/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.14-blue)](https://github.com/jurrienk/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
