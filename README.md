@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.14-blue)](https://github.com/jurrienk/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.17-blue)](https://github.com/jurrienk/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -64,6 +64,13 @@ Call the `one2track.get_raw_device_data` service to get raw data from all source
 See [TESTING.md](TESTING.md) for the full architecture reference, entity specifications, service examples, and test procedures.
 
 ## Changelog
+
+### v1.0.17 (2026-03-21)
+
+- **Fix:** Zone detection now returns the zone slug (e.g. `home`) instead of the display name (`Home`), fixing person tile not turning green when in the home zone
+### v1.0.15 (2026-03-16)
+
+- **Fix:** Transient server errors (e.g. HTTP 503) during setup now raise `ConfigEntryNotReady` so Home Assistant automatically retries instead of marking the integration as permanently failed
 
 ### v1.0.13 (2026-03-16)
 

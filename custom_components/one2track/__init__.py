@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import (
@@ -43,10 +44,22 @@ async def async_setup_entry(
         session=async_create_clientsession(hass),
     )
 
-    await client.async_authenticate()
+    try:
+        await client.async_authenticate()
+    except One2TrackApiClientCommunicationError as exc:
+        raise ConfigEntryNotReady(
+            f"Unable to connect to One2Track: {exc}"
+        ) from exc
 
     coordinator = One2TrackCoordinator(hass, client)
-    await coordinator.async_setup()
+
+    try:
+        await coordinator.async_setup()
+    except One2TrackApiClientCommunicationError as exc:
+        raise ConfigEntryNotReady(
+            f"Unable to set up devices: {exc}"
+        ) from exc
+
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = One2TrackData(

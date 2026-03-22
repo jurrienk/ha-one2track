@@ -91,7 +91,7 @@ class One2TrackDeviceTracker(One2TrackEntity, TrackerEntity):
                     self._hass, self.latitude, self.longitude, self.location_accuracy
                 )
                 if zone:
-                    return zone.name
+                    return zone.entity_id.removeprefix("zone.")
         except Exception:
             pass
         return self._location.get("address")
